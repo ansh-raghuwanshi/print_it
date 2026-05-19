@@ -1,0 +1,19 @@
+{
+  "name": "print_it",
+  "version": "1.0.0",
+  "description": "an app for stationaries neer colleges",
+  "license": "ISC",
+  "author": "ansh raghuwanshi",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2"
+  }
+}
