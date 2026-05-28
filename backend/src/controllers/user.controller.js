@@ -3,6 +3,9 @@ import Apiresponse from "../utils/ApiResponse.js"
 import Apierror from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import { College } from "../models/colleges.model.js"
+import crypto from "crypto"
+import sendEmail from "../utils/sendEmail.js"
+import { verificationEmailTemplate } from "../utils/emailTemplates.js"
 
 
 const registerStudent=asyncHandler(async(req,res)=>{
@@ -41,6 +44,8 @@ const registerStudent=asyncHandler(async(req,res)=>{
     throw new Apierror(400,"phone already in use login insted")
   }
 
+  const verificationToken = crypto.randomBytes(32).toString("hex")
+
   const user=await User.create({
     name:name.trim(),
     email:email.toLowerCase().trim(),
@@ -48,20 +53,53 @@ const registerStudent=asyncHandler(async(req,res)=>{
     phone,
     role:"student",
     collegeId,
-    collegeIdNumber:collegeIdNumber.trim()
+    collegeIdNumber:collegeIdNumber.trim(),
+    emailVerificationToken: verificationToken
   })
 
-  const createdUser=await User.findById(user._id).select("-password -refreshToken")
+  const verificationUrl = `${process.env.CORS_ORIGIN}/verify-email/${verificationToken}`
+  const template = verificationEmailTemplate({ name: user.name, verificationUrl })
+  await sendEmail({ to: user.email, subject: template.subject, html: template.html })
+
+  const createdUser=await User.findById(user._id).select("-password -refreshToken -emailVerificationToken")
+
   if(!createdUser)
   {
     throw new Apierror(500,"user creation failed something went wrong")
   }
 
   return res.status(201)
-  .json(new Apiresponse(201,createdUser,"student registered successfully"))
+  .json(new Apiresponse(201,createdUser,"student registered Please check your email to verify your account"))
 
 })
 
 
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.params
+ 
+  if (!token) {
+    throw new Apierror(400, "Invalid verification link")
+  }
+ 
+  // need +emailVerificationToken because select:false hides it by default
+  const user = await User.findOne({
+    emailVerificationToken: token,
+  }).select("+emailVerificationToken")
+ 
+  if (!user) {
+    throw new Apierror(400, "Invalid or expired verification link")
+  }
+ 
+  // mark verified and clear token
+  user.isEmailVerified = true
+  user.emailVerificationToken = null
+  await user.save()
+ 
+  return res.status(200).json(
+    new Apiresponse(200, null, "Email verified successfully. You can now log in.")
+  )
+})
 
-export{registerStudent}
+
+
+export{registerStudent, verifyEmail}
