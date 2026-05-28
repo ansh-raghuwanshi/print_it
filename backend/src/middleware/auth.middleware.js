@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 
 const verifyjwt=async(req,res,next)=>{
  try{
-   const token=req.cookies?.accessToken 
+   const token=req.cookies?.accessToken || req.headers?.authorization?.split(" ")[1]
   if(!token)
   {
     throw new Apierror(401,"unothorized")
@@ -16,6 +16,10 @@ const verifyjwt=async(req,res,next)=>{
   {
     throw new Apierror(401,"unothorized")
   }
+  if (!user.isActive)
+  {
+    throw new Apierror(403, "Account has been deactivated")
+  }
   req.user=user
   next()
  }
@@ -24,3 +28,4 @@ const verifyjwt=async(req,res,next)=>{
   }
 
 }
+export default verifyjwt
