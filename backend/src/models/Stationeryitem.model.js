@@ -109,14 +109,11 @@ stationeryItemSchema.set("toJSON", { virtuals: true });
 stationeryItemSchema.set("toObject", { virtuals: true });
 
 //automatic availability toggle
-stationeryItemSchema.pre("save", function (next) {
+stationeryItemSchema.pre("save", async function () {
   if (this.realStock === 0) {
-    this.isAvailable = false;
-    // no stock at all → automatically hide from students
-    // shopkeeper must restock and manually toggle back on
+    this.isAvailable = false
   }
-  next();
-});
+})
 
 
 stationeryItemSchema.index({ shopId: 1 });
