@@ -411,8 +411,7 @@ orderSchema.index({ filesDeleted: 1, deleteFilesAt: 1 });
 // background job query: find completed orders ready for file deletion
 // filesDeleted: false AND deleteFilesAt <= now
 
-orderSchema.index({ orderNumber: 1 });
-// look up order by human readable number
-// "find order 1042"
+
+
 
 export const Order = mongoose.model("Order", orderSchema);

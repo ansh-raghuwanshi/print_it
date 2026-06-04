@@ -20,7 +20,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.9"
+    "nodemailer": "^8.0.9",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

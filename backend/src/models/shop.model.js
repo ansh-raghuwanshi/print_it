@@ -83,6 +83,12 @@ const shopSchema = new mongoose.Schema(
       default: null,
       // ref to admin user who approved
     },
+    printPricing: {
+  bwSingleSided:    { type: Number, default: 1   },
+  bwDoubleSided:    { type: Number, default: 1.5 },
+  colorSingleSided: { type: Number, default: 5   },
+  colorDoubleSided: { type: Number, default: 8   },
+ }
   },
 
   { timestamps: true }

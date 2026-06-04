@@ -62,4 +62,30 @@ const toggleShopStatus = asyncHandler(async (req, res) => {
   )
 })
 
-export { getMyShop, updateShop, toggleShopStatus }
+const updatePricing = asyncHandler(async (req, res) => {
+  const { bwSingleSided, bwDoubleSided, colorSingleSided, colorDoubleSided } = req.body
+
+  const updateFields = {}
+  if (bwSingleSided !== undefined) updateFields["printPricing.bwSingleSided"] = bwSingleSided
+  if (bwDoubleSided !== undefined) updateFields["printPricing.bwDoubleSided"] = bwDoubleSided
+  if (colorSingleSided !== undefined) updateFields["printPricing.colorSingleSided"] = colorSingleSided
+  if (colorDoubleSided !== undefined) updateFields["printPricing.colorDoubleSided"] = colorDoubleSided
+
+  if (Object.keys(updateFields).length === 0) {
+    throw new ApiError(400, "No pricing fields provided")
+  }
+
+  const shop = await Shop.findByIdAndUpdate(
+    req.user.shopId,
+    updateFields,
+    { returnDocument: "after", runValidators: true }
+  )
+
+  if (!shop) throw new ApiError(404, "Shop not found")
+
+  return res.status(200).json(
+    new ApiResponse(200, { shop }, "Pricing updated successfully")
+  )
+})
+
+export { getMyShop, updateShop, toggleShopStatus,updatePricing }

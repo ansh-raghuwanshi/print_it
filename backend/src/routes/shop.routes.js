@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getMyShop, updateShop, toggleShopStatus } from "../controllers/shop.controller.js"
+import { getMyShop, updateShop, toggleShopStatus,updatePricing } from "../controllers/shop.controller.js"
 import  verifyJWT  from "../middleware/auth.middleware.js"
 import { requireRole } from "../middleware/role.middleware.js"
 
@@ -14,5 +14,5 @@ router.route("/me")
   .patch(updateShop)
 
 router.route("/me/status").patch(toggleShopStatus)
-
+router.route("/me/pricing").patch(updatePricing)
 export default router
