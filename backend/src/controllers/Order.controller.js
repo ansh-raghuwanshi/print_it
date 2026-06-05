@@ -11,6 +11,8 @@ import crypto from "crypto"
 import fs from "fs"
 import path from "path"
 import os from "os"
+import createNotification from "../utils/createNotification.js"
+import { Notification } from "../models/notification.model.js"
 
 // HELPER: Calculate print cost for one print job
 
@@ -238,6 +240,7 @@ const confirmOrder = asyncHandler(async (req, res) => {
   }
 
   const { shopId, processedFiles, stationeryItems, totalAmount } = tempOrderData
+  const shop = await Shop.findById(tempOrderData.shopId).select("ownerId")
 
   // build print jobs array for database
   const printJobs = processedFiles.map((file) => ({
@@ -271,6 +274,17 @@ const confirmOrder = asyncHandler(async (req, res) => {
     timeoutAt: new Date(Date.now() + 15 * 60 * 1000),
     // 15 minutes from now — if shopkeeper doesn't respond, order times out
   })
+
+  //notification after order is placed
+   await createNotification({
+    userId: shop.ownerId,
+    orderId: order._id,
+    title: "New Order Received",
+    message: `New order #${order.orderNumber} from ${req.user.name}`,
+    type: "ORDER_PLACED",
+  })
+
+
 
   // deduct stationery stock now that payment is confirmed
   for (const item of stationeryItems) {
@@ -405,6 +419,16 @@ const cancelOrder = asyncHandler(async (req, res) => {
   order.timeline.cancelledAt = new Date()
   await order.save()
 
+  // notification after order is cancelled
+  const shop = await Shop.findById(order.shopId).select("ownerId")
+  await createNotification({
+    userId: shop.ownerId,
+    orderId: order._id,
+    title: "Order Cancelled",
+    message: `Order #${order.orderNumber} was cancelled by the student.`,
+    type: "ORDER_CANCELLED",
+  })
+
   return res.status(200).json(
     new ApiResponse(200, null, "Order cancelled and refund initiated.")
   )
@@ -451,6 +475,15 @@ const acceptOrder = asyncHandler(async (req, res) => {
   order.status = "ACCEPTED"
   order.timeline.acceptedAt = new Date()
   await order.save()
+
+  // notification after order is accepted
+  await createNotification({
+  userId: order.studentId,
+  orderId: order._id,
+  title: "Order Accepted",
+  message: `Your order #${order.orderNumber} has been accepted and is being printed.`,
+  type: "ORDER_ACCEPTED",
+  })
 
   // return merged PDF URLs for all print jobs
   // frontend opens browser print dialog with these
@@ -516,6 +549,15 @@ const rejectOrder = asyncHandler(async (req, res) => {
   order.timeline.rejectedAt = new Date()
   await order.save()
 
+  // notification after order is rejected
+  await createNotification({
+  userId: order.studentId,
+  orderId: order._id,
+  title: "Order Rejected",
+  message: `Your order #${order.orderNumber} was rejected. Reason: ${rejectionReason}. A full refund has been initiated.`,
+  type: "ORDER_REJECTED",
+  })
+
   return res.status(200).json(
     new ApiResponse(200, null, "Order rejected and refund initiated.")
   )
@@ -542,6 +584,15 @@ const markReady = asyncHandler(async (req, res) => {
   order.status = "READY"
   order.timeline.readyAt = new Date()
   await order.save()
+
+  // notification after order is ready for pickup
+  await createNotification({
+  userId: order.studentId,
+  orderId: order._id,
+  title: "Order Ready for Pickup",
+  message: `Your order #${order.orderNumber} is ready. Please come to the shop to pick it up.`,
+  type: "ORDER_READY",
+  })
 
   return res.status(200).json(
     new ApiResponse(200, null, "Order marked as ready for pickup.")

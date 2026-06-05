@@ -15,11 +15,25 @@ import {
 import verifyJWT  from "../middleware/auth.middleware.js"
 import { requireRole } from "../middleware/role.middleware.js"
 import { upload } from "../middleware/multer.middleware.js"
+import crypto from "crypto"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 const router = Router()
 
 // all order routes require login
 router.use(verifyJWT)
+
+//test route
+ router.route("/test-signature").post(asyncHandler(async (req, res) => {
+  const { razorpayOrderId } = req.body
+  const fakePaymentId = "pay_test_" + Date.now()
+  const signature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpayOrderId}|${fakePaymentId}`)
+    .digest("hex")
+
+  res.json({ razorpayPaymentId: fakePaymentId, razorpaySignature: signature })
+}))
 
 // Student routes 
 router.route("/calculate")

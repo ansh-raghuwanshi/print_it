@@ -24,6 +24,7 @@ import collegeRouter from "./routes/college.routes.js"
 import shopRouter from "./routes/shop.routes.js"
 import stationeryRouter from "./routes/stationery.routes.js"
 import orderRouter from "./routes/order.routes.js"
+import notificationRouter from "./routes/notification.routes.js"
 
 //routes
 app.use("/api/users",userRoutes)
@@ -31,5 +32,7 @@ app.use("/api/colleges",collegeRouter)
 app.use("/api/shop",shopRouter)
 app.use("/api/stationery", stationeryRouter)
 app.use("/api/orders", orderRouter)
+app.use("/api/notifications", notificationRouter)
+
 
 export default app

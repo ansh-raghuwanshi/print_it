@@ -355,43 +355,37 @@ const orderSchema = new mongoose.Schema(
 // ─── Pre-save: generate orderNumber ──────────────────────────────
 // Atomically increments the counter and assigns the next number
 // Runs only when creating a new order (not on updates)
-
-orderSchema.pre("save", async function (next) {
-  if (!this.isNew) return next();
-  // isNew is true only on first save, not on updates
-  // this prevents regenerating orderNumber on every update
+orderSchema.pre("save", async function () {
+  if (!this.isNew) return
 
   try {
     const counter = await Counter.findOneAndUpdate(
       { _id: "orderNumber" },
       { $inc: { value: 1 } },
-      { new: true, upsert: true }
-      // upsert: true → creates the counter document if it doesn't exist yet
-      // new: true → returns the updated document (with new value)
-    );
-
-    this.orderNumber = counter.value;
-    next();
+      { returnDocument: "after", upsert: true }
+    )
+    this.orderNumber = counter.value
   } catch (error) {
-    next(error);
+    throw error
   }
-});
+})
+
 
 // ─── Pre-save: set deleteFilesAt when order is completed 
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", async function () {
   if (
     this.isModified("status") &&
     this.status === "COMPLETED" &&
     this.timeline.completedAt &&
     !this.deleteFilesAt
   ) {
-    // 30 minutes after completion, files should be deleted
     this.deleteFilesAt = new Date(
       this.timeline.completedAt.getTime() + 30 * 60 * 1000
-    );
+    )
   }
-  next();
-});
+})
+
+
 
 // ─── Indexes ──────────────────────────────────────────────────────
 
