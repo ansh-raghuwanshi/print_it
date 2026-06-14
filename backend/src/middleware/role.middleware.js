@@ -12,4 +12,11 @@ const requireRole = (...roles) => {
   }
 }
 
-export { requireRole }
+const requireAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    throw new ApiError(403, "Access denied. Admins only.")
+  }
+  next()
+}
+
+export { requireRole, requireAdmin }

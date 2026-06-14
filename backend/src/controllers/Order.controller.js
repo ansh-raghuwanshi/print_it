@@ -11,7 +11,7 @@ import crypto from "crypto"
 import fs from "fs"
 import path from "path"
 import os from "os"
-import createNotification from "../utils/createNotification.js"
+import {createNotification} from "../utils/createNotification.js"
 import { Notification } from "../models/notification.model.js"
 
 // HELPER: Calculate print cost for one print job

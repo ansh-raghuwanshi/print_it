@@ -3,13 +3,13 @@
 import connectDB from './db/db.js'
 import app from './app.js'
 import seedDatabase from './utils/seed.js'
-
+import startCronJobs from "./utils/cronJobs.js"
 
 
 connectDB().then(async ()=>{
  await seedDatabase()
-
-
+ startCronJobs()
+ 
   app.listen(process.env.PORT || 5000,()=>{
     console.log(`server is running on port ${process.env.PORT}`)
   })
