@@ -104,71 +104,74 @@ const verifyEmail = asyncHandler(async (req, res) => {
 })
 
 
-const login=asyncHandler(async(req,res)=>{
-  const {email,password}=req.body
-   if([email,password].some((field)=>!field ||field.trim()==="")){
-    throw new Apierror(400,"All fields are required")
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body
+
+  if ([email, password].some((field) => !field || field.trim() === "")) {
+    throw new Apierror(400, "All fields are required")
   }
 
-  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if(!emailRegex.test(email)){
-    throw new Apierror(400,"Invalid email format")
-  }
-  
-  const user=await User.findOne({email:email.toLowerCase().trim()}).select("+password")
-  if(!user)
-  {
-    throw new Apierror(400,"Invalid email or password")
-  }
-  const isMatch=await user.isPasswordCorrect(password)
-  if(!isMatch)
-  {
-    throw new Apierror(400,"Invalid email or password")
-  }
-  if(!user.isEmailVerified)
-  {
-    throw new Apierror(400,"Email not verified Please check your email to verify your account")
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    throw new Apierror(400, "Invalid email format")
   }
 
-  if(!user.isActive)
-  {
-    throw new Apierror(403,"Your account is inactive Please contact support")
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password")
+  if (!user) {
+    throw new Apierror(400, "Invalid email or password")
   }
 
-  if(user.role==="shopkeeper")
-  {
-    const shop=await Shop.findById(user.shopId)
-    if(!shop)
-    {
-      throw new Apierror(404,"Associated shop not found Please contact support")
-    }
-     if (shop.status === "INACTIVE") {
-      throw new Apierror(403, "Your shop subscription has expired")
-    }
-    if (shop.status === "PENDING") {
-      throw new Apierror(403, "Your shop is pending approval")
-    }
-    if (shop.status === "REJECTED") {
-      throw new Apierror(403, "Your shop application was rejected")
-    }
+  const isMatch = await user.isPasswordCorrect(password)
+  if (!isMatch) {
+    throw new Apierror(400, "Invalid email or password")
   }
-  const accessToken=user.generateAccessToken()
-  const refreshToken=user.generateRefreshToken()
-  user.refreshToken=refreshToken
+
+  if (!user.isEmailVerified) {
+    throw new Apierror(400, "Email not verified. Please check your email to verify your account")
+  }
+
+  if (!user.isActive) {
+    throw new Apierror(403, "Your account is inactive. Please contact support")
+  }
+
+  let shopInfo = null
+
+  if (user.role === "shopkeeper") {
+    const shop = await Shop.findById(user.shopId).select("name status rejectionReason isOpen")
+    if (!shop) {
+      throw new Apierror(404, "Associated shop not found. Please contact support")
+    }
+    shopInfo = shop
+    // no blocking here — shopkeeper can log in regardless of shop status
+    // frontend decides what to show based on shop.status
+  }
+
+  const accessToken = user.generateAccessToken()
+  const refreshToken = user.generateRefreshToken()
+  user.refreshToken = refreshToken
   await user.save()
-  const logedinUser=await User.findById(user._id).select("-password -refreshToken -emailVerificationToken")
-  return res.status(200).json(new Apiresponse(200,{user:logedinUser,accessToken,refreshToken},"Login successful"))
 
-  const cookiesOptions = {
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken -emailVerificationToken"
+  )
+
+  const cookieOptions = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   }
-  res.cookie("refreshToken", refreshToken, cookiesOptions)
-  return res.status(200)
-  .res.cookie("refreshToken", refreshToken, cookiesOptions)
-  .json(new Apiresponse(200,{user:logedinUser,accessToken},"Login successful"))
+
+  return res
+    .status(200)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new Apiresponse(
+        200,
+        { user: loggedInUser, accessToken, shop: shopInfo },
+        "Login successful"
+      )
+    )
 })
 
 
@@ -212,11 +215,16 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
   .json(new Apiresponse(200,{accessToken},"Access token refreshed successfully"))
 })
 
-const getMe=asyncHandler(async(req,res)=>{
-  const user=req.user
-  return res
-  .status(200)
-  .json(new Apiresponse(200,{user},"User details fetched successfully"))
+const getMe = asyncHandler(async (req, res) => {
+  let shopInfo = null
+
+  if (req.user.role === "shopkeeper" && req.user.shopId) {
+    shopInfo = await Shop.findById(req.user.shopId).select("name status rejectionReason isOpen")
+  }
+
+  return res.status(200).json(
+    new Apiresponse(200, { user: req.user, shop: shopInfo }, "User fetched successfully")
+  )
 })
 
 
