@@ -1,14 +1,21 @@
 import { useEffect, useState, useRef } from "react"
-import { useParams, Link } from "react-router-dom"
-import { verifyEmail } from "../../api/auth.api"
+import { useParams, useNavigate, Link } from "react-router-dom"
 import { CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { verifyEmail } from "../../api/auth.api"
+import AuthLayout from "../../components/auth/AuthLayout"
+import { Button } from "../../components/ui/button"
+
+const REDIRECT_DELAY_SECONDS = 4
 
 const VerifyEmail = () => {
   const { token } = useParams()
+  const navigate = useNavigate()
   const [status, setStatus] = useState("loading")
   const [message, setMessage] = useState("")
+  const [secondsLeft, setSecondsLeft] = useState(REDIRECT_DELAY_SECONDS)
   const hasVerified = useRef(false)
 
+  // Run verification exactly once, even under StrictMode's double-invoke in dev
   useEffect(() => {
     if (hasVerified.current) return
     hasVerified.current = true
@@ -20,54 +27,72 @@ const VerifyEmail = () => {
         setMessage(response.message)
       } catch (err) {
         setStatus("error")
-        setMessage(err.response?.data?.message || "Verification failed")
+        setMessage(err.response?.data?.message || "We couldn't verify this link.")
       }
     }
 
     verify()
   }, [token])
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl border border-gray-200 w-full max-w-md text-center">
+  // Countdown + auto-redirect, only once verification succeeds
+  useEffect(() => {
+    if (status !== "success") return
 
+    if (secondsLeft === 0) {
+      navigate("/login", {
+        state: { message: "Email verified. You can log in now." },
+      })
+      return
+    }
+
+    const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [status, secondsLeft, navigate])
+
+  return (
+    <AuthLayout>
+      <div className="text-center">
         {status === "loading" && (
           <>
-            <Loader2 className="w-12 h-12 text-gray-400 mx-auto animate-spin" />
-            <p className="text-gray-500 mt-4">Verifying your email...</p>
+            <Loader2 className="w-12 h-12 text-muted-foreground mx-auto animate-spin" />
+            <p className="text-muted-foreground mt-4">Verifying your email...</p>
           </>
         )}
 
         {status === "success" && (
           <>
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
-            <h1 className="text-xl font-bold mt-4">Email Verified!</h1>
-            <p className="text-gray-500 mt-2">{message}</p>
-            <Link
-              to="/login"
-              className="inline-block mt-6 bg-black text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
-            >
-              Go to Login
-            </Link>
+            <CheckCircle className="w-12 h-12 text-success mx-auto" />
+            <h1 className="font-heading text-xl font-bold mt-4 text-foreground">
+              Email Verified!
+            </h1>
+            <p className="text-muted-foreground mt-2">{message}</p>
+            <p className="text-xs text-muted-foreground mt-4">
+              Redirecting to login in {secondsLeft}s...
+            </p>
+            <Button onClick={() => navigate("/login")} className="mt-4 w-full">
+              Go to Login Now
+            </Button>
           </>
         )}
 
         {status === "error" && (
           <>
-            <XCircle className="w-12 h-12 text-red-500 mx-auto" />
-            <h1 className="text-xl font-bold mt-4">Verification Failed</h1>
-            <p className="text-gray-500 mt-2">{message}</p>
-            <Link
-              to="/login"
-              className="inline-block mt-6 bg-black text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
-            >
-              Back to Login
+            <XCircle className="w-12 h-12 text-destructive mx-auto" />
+            <h1 className="font-heading text-xl font-bold mt-4 text-foreground">
+              Verification Link Didn't Work
+            </h1>
+            <p className="text-muted-foreground mt-2">{message}</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              This can happen if the link was already used, or has expired. If
+              you've already verified, you can simply log in.
+            </p>
+            <Link to="/login">
+              <Button className="mt-4 w-full">Back to Login</Button>
             </Link>
           </>
         )}
-
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 

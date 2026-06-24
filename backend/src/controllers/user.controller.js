@@ -104,6 +104,36 @@ const verifyEmail = asyncHandler(async (req, res) => {
 })
 
 
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email || email.trim() === "") {
+    throw new Apierror(400, "Email is required")
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
+
+  // Same response whether the user exists or not — never leak which emails are registered
+  if (!user || user.isEmailVerified) {
+    return res.status(200).json(
+      new Apiresponse(200, null, "If an unverified account exists with this email, a new verification link has been sent.")
+    )
+  }
+
+  const verificationToken = crypto.randomBytes(32).toString("hex")
+  user.emailVerificationToken = verificationToken
+  await user.save()
+
+  const verificationUrl = `${process.env.CORS_ORIGIN}/verify-email/${verificationToken}`
+  const template = verificationEmailTemplate({ name: user.name, verificationUrl })
+  await sendEmail({ to: user.email, subject: template.subject, html: template.html })
+
+  return res.status(200).json(
+    new Apiresponse(200, null, "If an unverified account exists with this email, a new verification link has been sent.")
+  )
+})
+
+
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
 
@@ -380,5 +410,6 @@ export{registerStudent,
   logout, 
   refreshAccessToken, 
   getMe,
-  registerShopkeeper
+  registerShopkeeper,
+  resendVerificationEmail
 } 

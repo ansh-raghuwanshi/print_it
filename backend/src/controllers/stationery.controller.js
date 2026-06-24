@@ -3,6 +3,7 @@ import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import { StationeryItem } from "../models/Stationeryitem.model.js"
 
+
 // shopkeeper — get all their items
 const getMyItems = asyncHandler(async (req, res) => {
   const items = await StationeryItem.find({ shopId: req.user.shopId })
@@ -165,10 +166,19 @@ const getShopItems = asyncHandler(async (req, res) => {
   const items = await StationeryItem.find({
     shopId,
     isAvailable: true,
-  }).select("name category price visibleStock image")
+  }).select("name category price visibleStock image realStock bufferPercent")
+  
+  // strip the raw stock-strategy fields before sending to the student —
+  // they were only included so the visibleStock virtual could compute correctly
+  const safeItems = items.map((item) => {
+    const obj = item.toJSON()
+    delete obj.realStock
+    delete obj.bufferPercent
+    return obj
+  })
 
   return res.status(200).json(
-    new ApiResponse(200, { items }, "Items fetched successfully")
+    new ApiResponse(200, { items: safeItems }, "Available items fetched successfully")
   )
 })
 

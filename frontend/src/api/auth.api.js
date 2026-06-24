@@ -20,6 +20,11 @@ export const verifyEmail = async (token) => {
   return response.data
 }
 
+export const resendVerification = async (email) => {
+  const response = await api.post("/users/resend-verification", { email })
+  return response.data
+}
+
 export const getMe = async () => {
   const response = await api.get("/users/me")
   return response.data
