@@ -48,3 +48,41 @@ export const confirmOrder = async ({ tempOrderData, razorpayOrderId, razorpayPay
   })
   return response.data
 }
+
+export const getOrderById = async (orderId) => {
+  const response = await api.get(`/orders/${orderId}`)
+  return response.data
+}
+
+export const getShopOrders = async (status) => {
+  const response = await api.get("/orders/shop", { params: status ? { status } : {} })
+  return response.data
+}
+
+export const acceptOrder = async (orderId) => {
+  const response = await api.patch(`/orders/${orderId}/accept`)
+  return response.data
+}
+
+export const rejectOrder = async (orderId, { rejectionReason, rejectionNote }) => {
+  const response = await api.patch(`/orders/${orderId}/reject`, {
+    rejectionReason,
+    rejectionNote,
+  })
+  return response.data
+}
+
+export const markReady = async (orderId) => {
+  const response = await api.patch(`/orders/${orderId}/ready`)
+  return response.data
+}
+
+export const markCompleted = async (orderId) => {
+  const response = await api.patch(`/orders/${orderId}/complete`)
+  return response.data
+}
+
+export const cancelOrder = async (orderId) => {
+  const response = await api.delete(`/orders/${orderId}`)
+  return response.data
+}

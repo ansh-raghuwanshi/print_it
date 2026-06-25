@@ -15,6 +15,10 @@ import AdminDashboard from "./pages/admin/Dashboard.jsx"
 import ShopBrowsing from "./pages/student/ShopBrowsing.jsx"
 import ShopDetail from "./pages/student/ShopDetail.jsx"
 import PlaceOrder from "./pages/student/PlaceOrder.jsx"
+import OrderDetail from "./pages/student/OrderDetail.jsx"
+import ShopOrderDetail from "./pages/shopkeeper/OrderDetail.jsx"
+import Inventory from "./pages/shopkeeper/Inventory.jsx"
+import Settings from "./pages/shopkeeper/Settings.jsx"
 
 const App = () => {
   return (
@@ -76,6 +80,39 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <PlaceOrder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/orders/:orderId"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <OrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shopkeeper/orders/:orderId"
+            element={
+              <ProtectedRoute allowedRoles={["shopkeeper"]}>
+                <ShopOrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shopkeeper/inventory"
+            element={
+              <ProtectedRoute allowedRoles={["shopkeeper"]}>
+                <Inventory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/shopkeeper/settings"
+            element={
+              <ProtectedRoute allowedRoles={["shopkeeper"]}>
+                <Settings />
               </ProtectedRoute>
             }
           />
