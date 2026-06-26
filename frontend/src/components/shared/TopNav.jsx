@@ -39,7 +39,8 @@ const TopNav = ({ links = [] }) => {
   return (
     <header className="border-b border-border bg-card">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <Link to={dashboardPath} className="font-heading font-bold text-foreground">
+        <Link to={dashboardPath} className="flex items-center gap-2 font-heading font-bold text-foreground">
+          <img src="/icons.svg" alt="" className="w-6 h-6" />
           Print<span className="text-primary">It</span>
         </Link>
 

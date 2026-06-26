@@ -17,8 +17,9 @@ const AuthLayout = ({ title, subtitle, children, footer }) => {
         {/* Wordmark, sits above the card, not inside it */}
         <Link
           to="/"
-          className="block text-center mb-6 font-heading text-2xl font-bold text-foreground tracking-tight"
+          className="flex items-center justify-center gap-2 mb-6 font-heading text-2xl font-bold text-foreground tracking-tight"
         >
+          <img src="/icons.svg" alt="" className="w-7 h-7" />
           Print<span className="text-primary">It</span>
         </Link>
 
