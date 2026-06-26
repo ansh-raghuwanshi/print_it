@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom"
 
-/*
- Shared shell for all pre-login auth pages (Login, Register, VerifyEmail, VerifyPending).
-  Renders the PrintIt wordmark, a centered card with a perforated "tear line" detail
- at the top (the page's one signature element), and an optional title/subtitle.
- 
- Usage:
-    <AuthLayout title="Login to PrintIt" subtitle="Pick up where you left off">
-      <form>...</form>
-    </AuthLayout>
-*/
+/**
+ * Shared shell for all pre-login auth pages (Login, Register, VerifyEmail, VerifyPending).
+ * Renders the PrintIt wordmark, a centered card with a perforated "tear line" detail
+ * at the top (the page's one signature element), and an optional title/subtitle.
+ *
+ * Usage:
+ *   <AuthLayout title="Login to PrintIt" subtitle="Pick up where you left off">
+ *     <form>...</form>
+ *   </AuthLayout>
+ */
 const AuthLayout = ({ title, subtitle, children, footer }) => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -26,15 +26,15 @@ const AuthLayout = ({ title, subtitle, children, footer }) => {
           {/* Perforation / tear-line signature detail */}
           <div
             aria-hidden="true"
-            className="h-3 w-full bg-background"
+            className="h-4 w-full bg-background"
             style={{
               maskImage:
-                "radial-gradient(circle at 6px 0px, transparent 5px, black 5.5px)",
-              maskSize: "12px 100%",
+                "radial-gradient(circle at 8px 0px, transparent 7px, black 7.5px)",
+              maskSize: "16px 100%",
               maskRepeat: "repeat-x",
               WebkitMaskImage:
-                "radial-gradient(circle at 6px 0px, transparent 5px, black 5.5px)",
-              WebkitMaskSize: "12px 100%",
+                "radial-gradient(circle at 8px 0px, transparent 7px, black 7.5px)",
+              WebkitMaskSize: "16px 100%",
               WebkitMaskRepeat: "repeat-x",
             }}
           />

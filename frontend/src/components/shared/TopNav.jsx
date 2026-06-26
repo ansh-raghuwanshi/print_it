@@ -17,6 +17,15 @@ const TopNav = ({ links = [] }) => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
+  const dashboardPath =
+    user?.role === "student"
+      ? "/student/dashboard"
+      : user?.role === "shopkeeper"
+      ? "/shopkeeper/dashboard"
+      : user?.role === "admin"
+      ? "/admin/dashboard"
+      : "/"
+
   const handleLogout = async () => {
     try {
       await logoutUser()
@@ -30,7 +39,7 @@ const TopNav = ({ links = [] }) => {
   return (
     <header className="border-b border-border bg-card">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <Link to="/" className="font-heading font-bold text-foreground">
+        <Link to={dashboardPath} className="font-heading font-bold text-foreground">
           Print<span className="text-primary">It</span>
         </Link>
 
